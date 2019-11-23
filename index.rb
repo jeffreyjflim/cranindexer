@@ -34,7 +34,7 @@ class CRANIndexer
 					lines += line
 				end
 
-				break if package_count == 10
+				break if package_count == 100
 			}
 
 			parse lines if lines != ''	# !! the last package may not have an empty line after it!
@@ -60,7 +60,7 @@ class CRANIndexer
 		download_path = "tmp/#{attribs['Package']}_#{attribs['Version']}.tar.gz"
 		case io = open("#{@package_dir}#{attribs['Package']}_#{attribs['Version']}.tar.gz")
 			when StringIO
-				File.open(download_path, 'w') { |f| f.write(io) }
+				File.open(download_path, 'w') { |f| f.write(io.read) }
 			when Tempfile
 				io.close
 				FileUtils.mv(io.path, download_path)
