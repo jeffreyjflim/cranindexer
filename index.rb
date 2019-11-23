@@ -69,15 +69,23 @@ class CRANIndexer
 		desc_string = `tar -Oxf #{download_path} #{attribs['Package']}/DESCRIPTION`
 		lines += desc_string
 		attribs = (Dcf.parse desc_string)[0]
-p attribs
 		data_hash = {}
 		transforms.each do |transform|
 			data_hash[transform[1]] = attribs[transform[0]]
 		end
 p data_hash
+
+		DB[:packages].insert(data_hash)
 STDIN.gets
 	end
 end
+
+# =================
+
+DB = COMMAND_LINE ? Sequel.connect('sqlite://prod.db') : Sequel.connect('sqlite://test.db')
+p DB
+Sequel.extension :migration
+Sequel::Migrator.run(DB, 'migrations')
 
 if COMMAND_LINE
 	ARGV[0] ? CRANIndexer.new.call(ARGV[0]) : CRANIndexer.new.call
