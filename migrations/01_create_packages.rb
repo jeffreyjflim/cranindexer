@@ -1,10 +1,10 @@
 Sequel.migration do
 	change do
 		create_table(:packages) do
-			primary_key :id
-
 			String :name
 			String :version
+			primary_key [:name, :version]
+
 			DateTime :date_publication
 
 			String :title

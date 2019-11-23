@@ -73,17 +73,18 @@ class CRANIndexer
 		transforms.each do |transform|
 			data_hash[transform[1]] = attribs[transform[0]]
 		end
-p data_hash
 
-		DB[:packages].insert(data_hash)
-STDIN.gets
+		begin
+			DB[:packages].insert(data_hash)
+		rescue Sequel::UniqueConstraintViolation => e
+			puts "skipping duplicate: #{attribs['Package']}_#{attribs['Version']}"
+		end
 	end
 end
 
 # =================
 
 DB = COMMAND_LINE ? Sequel.connect('sqlite://prod.db') : Sequel.connect('sqlite://test.db')
-p DB
 Sequel.extension :migration
 Sequel::Migrator.run(DB, 'migrations')
 
