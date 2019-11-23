@@ -1,8 +1,12 @@
 require 'bundler/setup'
 
 require 'open-uri'
+require 'fileutils'
+
+require 'dcf'
 
 require 'sequel'
+
 
 COMMAND_LINE = $0 == 'index.rb' ? true : false
 
@@ -10,14 +14,54 @@ COMMAND_LINE = $0 == 'index.rb' ? true : false
 class CRANIndexer
 	def call(package_path='https://cran.r-project.org/src/contrib/PACKAGES')
 		puts "Grabbing package list from #{package_path}"
+		package_dir = package_path.sub(/PACKAGES$/, '')
 
+		transforms = {
+			'Package'          => 'name',
+			'Version'          => 'version',
+			'Date/Publication' => 'date_publication',
+			'Title'            => 'title',
+			'Description'      => 'description',
+		}
+
+		FileUtils.mkdir_p('tmp')
+		#
+		package_count = 0
 		open(package_path) do |f|
+			lines = ''
 			f.each_line {|line|
-				puts line
 				if line.strip.empty?
 					# do processing
-					puts '=========='
+					package_count += 1
+					attribs = (Dcf.parse lines)[0]
+
+					# code from https://stackoverflow.com/questions/2263540/how-do-i-download-a-binary-file-over-http, 'Overbyrd's answer
+					download_path = "tmp/#{attribs['Package']}_#{attribs['Version']}.tar.gz"
+					case io = open("#{package_dir}#{attribs['Package']}_#{attribs['Version']}.tar.gz")
+						when StringIO
+							File.open(download_path, 'w') { |f| f.write(io) }
+						when Tempfile
+							io.close
+							FileUtils.mv(io.path, download_path)
+					end
+
+					desc_string = `tar -Oxf #{download_path} #{attribs['Package']}/DESCRIPTION`
+					lines += desc_string
+					attribs = (Dcf.parse desc_string)[0]
+p attribs
+					data_hash = {}
+					transforms.each do |transform|
+						data_hash[transform[1]] = attribs[transform[0]]
+					end
+p data_hash
+STDIN.gets
+
+					lines = ''
+				else
+					lines += line
 				end
+
+				break if package_count == 10
 			}
 		end
 	end
