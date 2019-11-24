@@ -60,7 +60,6 @@ class CRANIndexer
 			'Date/Publication' => 'date_publication',
 			'Title'            => 'title',
 			'Description'      => 'description',
-			'Maintainer'       => 'maintainer_name',
 		}
 
 		attribs = (Dcf.parse lines)[0]
@@ -85,7 +84,7 @@ class CRANIndexer
 		end
 
 		# parse maintainer name and email
-		data_hash['maintainer_name'], maintainer_email = data_hash['maintainer_name'].split(' <')
+		data_hash['maintainer_name'], maintainer_email = attribs['Maintainer'].split(' <')
 		maintainer_email.chop!
 
 		begin
@@ -98,7 +97,7 @@ class CRANIndexer
 		begin
 			DB[:maintainers].insert(name: data_hash['maintainer_name'], email: maintainer_email)
 		rescue Sequel::UniqueConstraintViolation => e
-			puts "skipping duplicate maintainer: #{maintainer_name} <#{maintainer_email}>"
+			puts "skipping duplicate maintainer: #{data_hash['maintainer_name']} <#{maintainer_email}>"
 		end
 	end
 end
