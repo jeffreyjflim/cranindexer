@@ -89,6 +89,11 @@ class CRANIndexer
 
 		attribs = (Dcf.parse lines)[0]
 
+		if Package[name: attribs['Package'], version: attribs['Version']]
+			puts "skipping duplicate package: #{attribs['Package']}_#{attribs['Version']}" if COMMAND_LINE
+			return
+		end
+
 		# code from https://stackoverflow.com/questions/2263540/how-do-i-download-a-binary-file-over-http, 'Overbyrd's answer
 		download_path = "tmp/#{attribs['Package']}_#{attribs['Version']}.tar.gz"
 		package_path = "#{@package_dir}#{attribs['Package']}_#{attribs['Version']}.tar.gz"
@@ -113,11 +118,7 @@ class CRANIndexer
 		data_hash['maintainer_name'], maintainer_email = attribs['Maintainer'].split(' <')
 		maintainer_email.chop!
 
-		begin
-			DB[:packages].insert(data_hash)
-		rescue Sequel::UniqueConstraintViolation => e
-			puts "skipping duplicate package: #{attribs['Package']}_#{attribs['Version']}" if COMMAND_LINE
-		end
+		DB[:packages].insert(data_hash)
 
 		# insert maintainer
 		begin
