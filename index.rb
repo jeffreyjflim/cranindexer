@@ -24,6 +24,20 @@ class CRANIndexer
 
 	attr_accessor :package_dir
 
+	def handle_http_exceptions(uri, e)
+		case e
+			when Errno::ECONNREFUSED
+				puts "Error connecting to #{uri}: check connectivity or try again later"
+			when OpenURI::HTTPError
+				puts "Got OpenURI::HTTPError #{e.io.status} connecting to #{uri}: check connectivity or try again later"
+			when ArgumentError
+				puts "Got ArgumentError: '#{e}' while parsing info for #{uri}: continuing with next package"
+			else
+				p e
+				puts e.backtrace
+		end
+	end
+
 	def call(package_path='https://cran.r-project.org/src/contrib/PACKAGES')
 		puts "Grabbing package list from #{package_path}"
 		@package_dir = package_path.sub(/PACKAGES$/, '')
@@ -42,11 +56,13 @@ class CRANIndexer
 					lines += line
 				end
 
-				break if package_count == 100
+				#break if package_count == 100
 			}
 
 			parse lines if lines != ''	# !! the last package may not have an empty line after it!
 		end
+	rescue StandardError => e
+		handle_http_exceptions(package_path, e)
 	end
 
 	private
@@ -66,7 +82,8 @@ class CRANIndexer
 
 		# code from https://stackoverflow.com/questions/2263540/how-do-i-download-a-binary-file-over-http, 'Overbyrd's answer
 		download_path = "tmp/#{attribs['Package']}_#{attribs['Version']}.tar.gz"
-		case io = open("#{@package_dir}#{attribs['Package']}_#{attribs['Version']}.tar.gz")
+		package_path = "#{@package_dir}#{attribs['Package']}_#{attribs['Version']}.tar.gz"
+		case io = open(package_path)
 			when StringIO
 				File.open(download_path, 'w') { |f| f.write(io.read) }
 			when Tempfile
@@ -90,7 +107,7 @@ class CRANIndexer
 		begin
 			DB[:packages].insert(data_hash)
 		rescue Sequel::UniqueConstraintViolation => e
-			puts "skipping duplicate: #{attribs['Package']}_#{attribs['Version']}"
+			puts "skipping duplicate package: #{attribs['Package']}_#{attribs['Version']}"
 		end
 
 		# insert maintainer
@@ -99,6 +116,8 @@ class CRANIndexer
 		rescue Sequel::UniqueConstraintViolation => e
 			puts "skipping duplicate maintainer: #{data_hash['maintainer_name']} <#{maintainer_email}>"
 		end
+	rescue StandardError => e
+		handle_http_exceptions(package_path, e)
 	end
 end
 
