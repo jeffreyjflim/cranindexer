@@ -76,6 +76,7 @@ class CRANIndexer
 		end
 
 		desc_string = `tar -Oxf #{download_path} #{attribs['Package']}/DESCRIPTION`
+		# !!---DEBUG: `tar -Oxf #{download_path} #{attribs['Package']}/DESCRIPTION > DESCS/#{attribs['Package']}`
 		lines += desc_string
 		attribs = (Dcf.parse desc_string)[0]
 		data_hash = {}
@@ -83,10 +84,21 @@ class CRANIndexer
 			data_hash[transform[1]] = attribs[transform[0]]
 		end
 
+		# parse maintainer name and email
+		data_hash['maintainer_name'], maintainer_email = data_hash['maintainer_name'].split(' <')
+		maintainer_email.chop!
+
 		begin
 			DB[:packages].insert(data_hash)
 		rescue Sequel::UniqueConstraintViolation => e
 			puts "skipping duplicate: #{attribs['Package']}_#{attribs['Version']}"
+		end
+
+		# insert maintainer
+		begin
+			DB[:maintainers].insert(name: data_hash['maintainer_name'], email: maintainer_email)
+		rescue Sequel::UniqueConstraintViolation => e
+			puts "skipping duplicate maintainer: #{maintainer_name} <#{maintainer_email}>"
 		end
 	end
 end
