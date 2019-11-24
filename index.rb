@@ -49,7 +49,7 @@ class CRANIndexer
 
 	def call(packages_path='https://cran.r-project.org/src/contrib/PACKAGES')
 		puts "Grabbing package list from #{packages_path}" if COMMAND_LINE
-		@package_dir = packages_path.sub(/PACKAGES$/, '')
+		@package_dir = packages_path.sub(/[^\/]*$/, '')	# !!--> NOTE that /[^\/]*$/ isn't really necessary; we could have stuck with /PACKAGES$/, but this facilitates testing
 
 		package_count = 0
 		open(packages_path) do |f|

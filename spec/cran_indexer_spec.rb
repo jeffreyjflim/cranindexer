@@ -33,4 +33,20 @@ describe CRANIndexer do
 		end
 	end
 
+	it 'indexes any new packages whenever it is rerun' do
+		@indexer.call "#{@test_server}/PACKAGES_2"
+
+		expect(Package.count).to eq 13
+		expect(Maintainer.count).to eq 10
+	end
+
+	it 'associates packages <-> maintainers correctly for new packages' do
+		abc_packages = Package.where(name: 'abc')
+		abc2_1_maintainer = Package[name: 'abc', version: '2.1'].maintainer
+
+		expect(abc_packages.count).to eq 2
+		expect(abc_packages.map(&:version)).to match_array ['2.1', '2.2']
+		expect(abc_packages.map(&:maintainer)).to match_array [abc2_1_maintainer, abc2_1_maintainer]
+	end
+
 end
