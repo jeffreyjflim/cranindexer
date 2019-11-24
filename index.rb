@@ -12,7 +12,9 @@ require 'sequel'
 COMMAND_LINE = $0 == 'index.rb' ? true : false
 
 
-DB = COMMAND_LINE ? Sequel.connect('sqlite://prod.db') : Sequel.connect('sqlite://test.db')
+DB_NAME = COMMAND_LINE ? 'prod.db' : 'test.db'
+DB = Sequel.connect("sqlite://#{DB_NAME}")
+#
 Sequel.extension :migration
 Sequel::Migrator.run(DB, 'migrations')
 #
@@ -24,26 +26,33 @@ class CRANIndexer
 
 	attr_accessor :package_dir
 
-	def handle_http_exceptions(uri, e)
-		case e
-			when Errno::ECONNREFUSED
-				puts "Error connecting to #{uri}: check connectivity or try again later"
-			when OpenURI::HTTPError
-				puts "Got OpenURI::HTTPError #{e.io.status} connecting to #{uri}: check connectivity or try again later"
-			when ArgumentError
-				puts "Got ArgumentError: '#{e}' while parsing info for #{uri}: continuing with next package"
-			else
-				p e
-				puts e.backtrace
+	# !! primarily used for testing
+	def clear_db
+		[:packages, :authors, :maintainers, :authors_packages].each do |table|
+			DB.from(table).truncate
 		end
 	end
 
-	def call(package_path='https://cran.r-project.org/src/contrib/PACKAGES')
-		puts "Grabbing package list from #{package_path}"
-		@package_dir = package_path.sub(/PACKAGES$/, '')
+	def handle_http_exceptions(uri, e)
+		case e
+			when Errno::ECONNREFUSED
+				STDERR.puts "Error connecting to #{uri}: check connectivity or try again later"
+			when OpenURI::HTTPError
+				STDERR.puts "Got OpenURI::HTTPError #{e.io.status} connecting to #{uri}: check connectivity or try again later"
+			when ArgumentError
+				STDERR.puts "Got ArgumentError: '#{e}' while parsing info for #{uri}: continuing with next package"
+			else
+				STDERR.puts e.inspect
+				STDERR.puts e.backtrace
+		end
+	end
+
+	def call(packages_path='https://cran.r-project.org/src/contrib/PACKAGES')
+		puts "Grabbing package list from #{packages_path}" if COMMAND_LINE
+		@package_dir = packages_path.sub(/PACKAGES$/, '')
 
 		package_count = 0
-		open(package_path) do |f|
+		open(packages_path) do |f|
 			lines = ''
 			f.each_line {|line|
 				if line.strip.empty?
@@ -53,7 +62,7 @@ class CRANIndexer
 
 					lines = ''
 				else
-					lines += line
+					lines += line if line !~ /^#/
 				end
 
 				#break if package_count == 100
@@ -62,7 +71,7 @@ class CRANIndexer
 			parse lines if lines != ''	# !! the last package may not have an empty line after it!
 		end
 	rescue StandardError => e
-		handle_http_exceptions(package_path, e)
+		handle_http_exceptions(packages_path, e)
 	end
 
 	private
@@ -107,14 +116,14 @@ class CRANIndexer
 		begin
 			DB[:packages].insert(data_hash)
 		rescue Sequel::UniqueConstraintViolation => e
-			puts "skipping duplicate package: #{attribs['Package']}_#{attribs['Version']}"
+			puts "skipping duplicate package: #{attribs['Package']}_#{attribs['Version']}" if COMMAND_LINE
 		end
 
 		# insert maintainer
 		begin
 			DB[:maintainers].insert(name: data_hash['maintainer_name'], email: maintainer_email)
 		rescue Sequel::UniqueConstraintViolation => e
-			puts "skipping duplicate maintainer: #{data_hash['maintainer_name']} <#{maintainer_email}>"
+			puts "skipping duplicate maintainer: #{data_hash['maintainer_name']} <#{maintainer_email}>" if COMMAND_LINE
 		end
 	rescue StandardError => e
 		handle_http_exceptions(package_path, e)

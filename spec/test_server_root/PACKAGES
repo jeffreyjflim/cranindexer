@@ -1,0 +1,98 @@
+# (DESCRIPTION will cause Dcf to raise '#<ArgumentError: invalid byte sequence in UTF-8>'; see rspec test for comment on this)
+Package: BACprior
+Version: 2.0
+Depends: mvtnorm, leaps, boot
+License: GPL (>= 2)
+MD5sum: 15821be4583b77abf7824642461c1aca
+NeedsCompilation: no
+
+# (DESCRIPTION file has complex 'Authors@R' field, and less complex (but no emails) 'Author' field)
+Package: abc
+Version: 2.1
+Depends: R (>= 2.10), abc.data, nnet, quantreg, MASS, locfit
+License: GPL (>= 3)
+MD5sum: c9fffe4334c178917f762735aba59653
+NeedsCompilation: no
+
+# (DESCRIPTION file has complex 'Authors@R' field, and less complex (but no emails) 'Author' field)
+Package: afc
+Version: 1.4.0
+License: GPL-3
+MD5sum: 374dc6198cbbd2bd66f0efe4f634324b
+NeedsCompilation: no
+
+# ('Maintainer' field is spread across 2 lines, with the email address on the continuation line)
+Package: adaptTest
+Version: 1.0
+Depends: lattice
+License: GPL (>= 2)
+MD5sum: 27ad902d7666f0c3098a7073753cfe88
+NeedsCompilation: no
+
+# (Both 'acss', 'acss.data', and 'afex' have the same maintainer)
+Package: acss
+Version: 0.2-5
+Depends: R (>= 2.15.0), acss.data
+Imports: zoo
+Suggests: effects, lattice
+License: GPL (>= 2)
+MD5sum: 98e6b46a04e3c9f1505de3b63c85e2d8
+NeedsCompilation: no
+
+Package: acss.data
+Version: 1.0
+Depends: R (>= 2.10)
+License: GPL (>= 2)
+MD5sum: c4693bbadf6fbb2e1376fef336277614
+NeedsCompilation: no
+
+Package: A3
+Version: 1.0.0
+Depends: R (>= 2.15.0), xtable, pbapply
+Suggests: randomForest, e1071
+License: GPL (>= 2)
+MD5sum: 027ebdd8affce8f0effaecfcd5f5ade2
+NeedsCompilation: no
+
+Package: aaSEA
+Version: 1.1.0
+Depends: R(>= 3.4.0)
+Imports: DT(>= 0.4), networkD3(>= 0.4), shiny(>= 1.0.5),
+        shinydashboard(>= 0.7.0), magrittr(>= 1.5), Bios2cor(>= 2.0),
+        seqinr(>= 3.4-5), plotly(>= 4.7.1), Hmisc(>= 4.1-1)
+Suggests: knitr, rmarkdown
+License: GPL-3
+MD5sum: 0f9aaefc1f1cf18b6167f85dab3180d8
+NeedsCompilation: no
+
+Package: ABACUS
+Version: 1.0.0
+Depends: R (>= 3.1.0)
+Imports: ggplot2 (>= 3.1.0), shiny (>= 1.3.1),
+Suggests: rmarkdown (>= 1.13), knitr (>= 1.22)
+License: GPL-3
+MD5sum: 50c54c4da09307cb95a70aaaa54b9fbd
+NeedsCompilation: no
+
+Package: abbyyR
+Version: 0.5.5
+Depends: R (>= 3.2.0)
+Imports: httr, XML, curl, readr, plyr, progress
+Suggests: testthat, rmarkdown, knitr (>= 1.11), lintr
+License: MIT + file LICENSE
+MD5sum: e048a3bca6ea32126e6c367415c0bfaf
+NeedsCompilation: no
+
+Package: afex
+Version: 0.25-1
+Depends: R (>= 3.1.0), lme4 (>= 1.1-8)
+Imports: pbkrtest (>= 0.4-1), lmerTest (>= 3.0-0), car, reshape2,
+        stats, methods, utils
+Suggests: emmeans (>= 1.4), coin, xtable, parallel, plyr, optimx,
+        nloptr, knitr, rmarkdown, R.rsp, lattice, latticeExtra,
+        multcomp, testthat, mlmRev, dplyr, tidyr, dfoptim, Matrix,
+        psych, ggplot2, MEMSS, effects, carData, ggbeeswarm, nlme,
+        cowplot, jtools, ggpubr, ggpol, MASS, glmmTMB, brms, rstanarm
+License: GPL (>= 2)
+MD5sum: 955e9ae822463a290a8a600b010773bc
+NeedsCompilation: no
