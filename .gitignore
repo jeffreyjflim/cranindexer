@@ -1,0 +1,5 @@
+.rbenv-gemsets
+.*.sw?
+*.db
+DESCS/
+tmp/
