@@ -11,6 +11,14 @@ require 'sequel'
 
 COMMAND_LINE = $0 == 'index.rb' ? true : false
 
+
+DB = COMMAND_LINE ? Sequel.connect('sqlite://prod.db') : Sequel.connect('sqlite://test.db')
+Sequel.extension :migration
+Sequel::Migrator.run(DB, 'migrations')
+#
+require './models.rb'
+
+
 # !! Using a class isn't strictly necessary; but it makes it easier to test with RSpec (you can instantiate an instance and call a method)
 class CRANIndexer
 
@@ -52,6 +60,7 @@ class CRANIndexer
 			'Date/Publication' => 'date_publication',
 			'Title'            => 'title',
 			'Description'      => 'description',
+			'Maintainer'       => 'maintainer_name',
 		}
 
 		attribs = (Dcf.parse lines)[0]
@@ -81,12 +90,6 @@ class CRANIndexer
 		end
 	end
 end
-
-# =================
-
-DB = COMMAND_LINE ? Sequel.connect('sqlite://prod.db') : Sequel.connect('sqlite://test.db')
-Sequel.extension :migration
-Sequel::Migrator.run(DB, 'migrations')
 
 if COMMAND_LINE
 	ARGV[0] ? CRANIndexer.new.call(ARGV[0]) : CRANIndexer.new.call

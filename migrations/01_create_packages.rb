@@ -9,6 +9,8 @@ Sequel.migration do
 
 			String :title
 			String :description
+
+			String :maintainer_name
 		end
 	end
 end
