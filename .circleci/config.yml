@@ -1,0 +1,28 @@
+version: 2.1
+
+defaults: &defaults
+  docker:
+    - image: circleci/python:3.8.2
+
+orbs:
+  slack: circleci/slack@3.4.2
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: translate circleci -> slack ids
+          command: |
+            echo -n export SLACK_MENTION= >> $BASH_ENV
+            grep ^$CIRCLE_USERNAME: .circleci/circleci_slack_translations |sed 's/[^:]*: //' >> $BASH_ENV
+      - run:
+          name: parse-validate YAML files
+          shell: /bin/bash
+          command: |
+            . venv/bin/activate
+      - slack/status:
+          channel: DS1DNCUQH
+          success_message: ':tada: (triggered by $CIRCLE_USERNAME) $SLACK_MENTION\n\n\`$CIRCLE_BRANCH ->\` $CIRCLE_PULL_REQUEST\n\n_($CIRCLE_SHA1)_'
+          failure_message: ':red_circle: (triggered by $CIRCLE_USERNAME) $SLACK_MENTION\n\n\`$CIRCLE_BRANCH ->\` $CIRCLE_PULL_REQUEST\n\n_($CIRCLE_SHA1)_'
